@@ -1,0 +1,137 @@
+h1 {
+    margin: 5px 0;
+    text-align: center;
+}
+/* 擴充元件 */
+#image-list {
+    width: 400px;
+    height: 480px;
+    overflow-y: scroll;
+    padding-left: 10px;
+}
+
+/* 擴充元件預覽圖 */
+.image-item {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+.image-item img {
+    max-width: 120px;
+    max-height: 80px;
+    margin: 5px;
+    transition: all 0.1s;
+}
+.image-item img:hover {
+    transform: scale(1.1);
+    transition: all 0.1s;
+    outline: 3px dashed red;
+}
+.image-item a {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* 擴充元件預覽圖框架 */
+#preview-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60vw;
+    height: 60vh;
+    background-color: white;
+    border: 1px solid black;
+    padding: 10px;
+    display: none;
+    z-index: 1000;
+}
+#preview-container img {
+    max-width: 100%;
+    max-height: 100%;
+    transition: all 0.3s;
+}
+/* 新增錯誤訊息樣式 */
+#error-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    color: red;
+    font-weight: bold;
+    font-size: 28px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* 禁止選擇 */
+.user-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+/* 下載開關按鈕 */
+#quick-download-container {
+    position: fixed;
+    top: 15px;
+    left: 0px;
+    padding: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+#quick-download-checkbox {
+    height: 20px;
+    margin: 0 2px 0 10px;
+}
+.quick-download-label {
+    font-size: 18px;
+    padding: 5px 10px 5px 0px;
+}
+.form-check-label {
+    padding-bottom: 1px;
+}
+/* 黑暗模式按鈕 */
+#themeToggle {
+    font-size: 20px;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border: 2px solid #ccc;
+    color: #ff9900;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+#themeToggle:hover {
+    color: #f9c922;
+}
+html[data-bs-theme=dark] #themeToggle {
+    background-color: #333;
+    color: #fff;
+    border-color: #fff;
+}
+html[data-bs-theme=dark] #themeToggle:hover {
+    color: #4e73df;
+}
+#themeToggle i {
+    transition: transform 0.3s ease;
+}
+html[data-bs-theme=light] #themeIcon {
+    transform: rotate(180deg);
+}
+html[data-bs-theme=dark] #themeIcon {
+    transform: rotate(0deg);
+}
+html[data-bs-theme=light] #image-list {
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+}
+html[data-bs-theme=dark] #image-list {
+    box-shadow: 5px 5px 10px rgba(255, 255, 255, 0.3);
+}
