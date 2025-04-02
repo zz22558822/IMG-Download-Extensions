@@ -347,8 +347,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
             // 快速下載
             try {
               const urlObj = new URL(imageUrl);
-              const pathname = urlObj.pathname;
-              const filename = pathname.substring(pathname.lastIndexOf('/') + 1) || 'image.png';
+              let pathname = urlObj.pathname;
+              let filename = pathname.substring(pathname.lastIndexOf('/') + 1) || 'image.png';
+
+              // 檢查副檔名 沒有時補上 PNG
+              if (!filename.includes('.')) {
+                filename += '.png';
+              }
 
               chrome.downloads.download({
                 url: imageUrl, // 使用原始 URL 進行下載，以確保參數正確
