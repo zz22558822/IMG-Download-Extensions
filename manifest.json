@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "圖片嗅探下載器",
   "version": "1.0",
-  "description": "自動嗅探頁面上的所有圖片格式下載工具",
+  "description": "自動嗅探網頁上的所有圖片並提供下載的工具",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -16,6 +16,9 @@
     "downloads",
     "scripting",
     "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "icons": {
     "16": "images/icon16.png",
