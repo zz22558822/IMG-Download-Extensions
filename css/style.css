@@ -88,10 +88,15 @@ h1 {
 #quick-download-checkbox {
     height: 20px;
     margin: 0 2px 0 10px;
+    cursor: pointer;
 }
 .quick-download-label {
     font-size: 18px;
     padding: 5px 10px 5px 0px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    cursor: pointer;
 }
 .form-check-label {
     padding-bottom: 1px;
