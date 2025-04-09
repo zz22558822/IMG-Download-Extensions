@@ -1,7 +1,7 @@
 # IMG-Download-Extensions  
 ## 圖片嗅探下載器
 
-**IMG-Download-Extensions** 是一款開源的 Chrome 擴充元件，能夠自動嗅探當前網頁上的所有圖片，並提供使用者快速預覽與批次下載的功能，讓圖片利用更加高效便利。
+**IMG-Download-Extensions** 是一款開源的 Chrome 擴充元件，能夠自動嗅探當前網頁上的所有圖片，並提供使用者快速預覽與下載的功能，讓圖片利用更加高效便利。
 
 ![IMG-Download-Extensions cover](https://github.com/zz22558822/IMG-Download-Extensions/blob/main/images/IMG-Download-Extensions.png)  
 
