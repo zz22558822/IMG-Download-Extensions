@@ -33,6 +33,11 @@
 
 ## 📝 更新紀錄
 
+### 📌2025/4/10 — [v1.0.2](https://github.com/zz22558822/IMG-Download-Extensions/releases/tag/v1.0.2)
+- ✅ 更新 Firefox 支援
+- ✅ 更新 Edge 支援
+- 🔧 優化動態判斷 WebExtension API
+
 ### 📌2025/4/9 — [v1.0.1](https://github.com/zz22558822/IMG-Download-Extensions/releases/tag/v1.0.1)
 - ✅ 新增「轉存為 PNG」按鈕（預設關閉）
 - 🔧 更新介面按鈕圖示
