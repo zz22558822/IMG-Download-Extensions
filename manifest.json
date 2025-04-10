@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "圖片嗅探下載器",
-  "version": "1.0",
+  "version": "1.0.1",
   "description": "自動嗅探網頁上的所有圖片並提供下載的工具",
   "action": {
     "default_popup": "popup.html",
