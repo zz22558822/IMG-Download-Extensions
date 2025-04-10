@@ -1,3 +1,30 @@
+// 判斷當前環境
+function getBrowserType() {
+  const userAgent = navigator.userAgent;
+  if (userAgent.includes("Chrome")) {
+    return "Chrome";
+  } else if (userAgent.includes("Firefox")) {
+    return "Firefox";
+  } else if (userAgent.includes("Safari")) {
+    return "Safari";
+  } else if (userAgent.includes("Edge")) {
+    return "Edge";
+  } else if (userAgent.includes("Opera") || userAgent.includes("OPR")) {
+    return "Opera";
+  } else if (userAgent.includes("IE") || userAgent.includes("Trident")) {
+    return "Internet Explorer";
+  } else {
+    return "Other"; // 無法明確判斷的瀏覽器
+  }
+}
+const browserType = getBrowserType();
+console.log("使用者瀏覽器:", browserType);
+
+// 調用的 API
+const browserApi = typeof browser !== "undefined" ? browser : chrome;
+const executeFunctionName = typeof browser !== "undefined" ? "func" : "function";
+
+
 // ------------------ 快速下載開關 ------------------
 const quickDownloadCheckbox = document.getElementById('quick-download-checkbox');
 // 讀取 localStorage 設定，如果不存在，則預設為 true
@@ -12,6 +39,22 @@ quickDownloadCheckbox.checked = isQuickDownloadEnabled;
 // 監聽 checkbox 狀態變更
 quickDownloadCheckbox.addEventListener('change', (event) => {
   localStorage.setItem('quickDownload', event.target.checked);
+});
+
+// ------------------ 轉為PNG開關 ------------------
+const pngSwitchCheckbox = document.getElementById('PNG-switch-checkbox');
+// 讀取 localStorage 設定，如果不存在，則預設為 false
+let IsPngSwitchEnabled = localStorage.getItem('pngSwitch');
+if (IsPngSwitchEnabled === null) {
+  IsPngSwitchEnabled = true; // 預設為 false
+  localStorage.setItem('pngSwitch', 'false'); // 保存預設值
+} else {
+  IsPngSwitchEnabled = IsPngSwitchEnabled === 'true';
+}
+pngSwitchCheckbox.checked = IsPngSwitchEnabled;
+// 監聽 checkbox 狀態變更
+pngSwitchCheckbox.addEventListener('change', (event) => {
+  localStorage.setItem('pngSwitch', event.target.checked);
 });
 
 
@@ -50,19 +93,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ------------------ 圖片嗅探 ------------------
 // 抓取頁面上的所有圖片，包括各種格式
-chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+// chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) { // Chrome版
+// browser.tabs.query({ active: true, currentWindow: true }).then(function (tabs) { // Firefox版
+browserApi.tabs.query({ active: true, currentWindow: true }).then(function (tabs) { // 判斷通用版
   // 檢查當前頁面 URL
-  if (tabs[0].url && tabs[0].url.startsWith('chrome://')) {
+  if (browserType == 'Chrome') {
+    browserFile = 'chrome://'
+  } else if (browserType == 'Firefox') {
+    browserFile = 'about:'
+  } else if (browserType == 'Edge') {
+    browserFile = 'edge://'
+  }
+  // if (tabs[0].url && tabs[0].url.startsWith('chrome://')) { // Chrome版
+  // if (tabs[0].url && tabs[0].url.startsWith('about:')) { // Firefox版
+  if (tabs[0].url && tabs[0].url.startsWith(browserFile)) { // 判斷通用版
     const errorMessage = document.getElementById('error-message');
     errorMessage.textContent = '無法在此頁面執行';
     return; // 停止執行
   }
 
-  chrome.scripting.executeScript(
+  // chrome.scripting.executeScript( // Chrome版
+  // browser.scripting.executeScript( // Firefox版
+  let browserApi = typeof browser !== "undefined" ? browser : chrome;
+  browserApi.scripting.executeScript( // 判斷通用版
     {
       // 圖片嗅探
       target: { tabId: tabs[0].id },
-      function: () => {
+      // function: () => { // Chrome版
+      // func: () => { // Firefox版
+      [executeFunctionName] : () => { // 判斷通用版
         const imageUrls = [];
         const validUrlRegex = /^(https?:\/\/|data:|\/)/i; // 驗證網址格式
 
@@ -145,8 +204,9 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
         return imageUrls;
       },
-    },
-    (results) => {
+    
+    // }, (results) => { // Chrome版
+    }).then((results) => { // Firefox版
       if (!results || !results[0] || !results[0].result) {
         const errorMessage = document.getElementById('error-message');
         errorMessage.textContent = '無法抓取圖片，請檢查網頁是否有圖片。';
@@ -177,9 +237,15 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
         // 圖片預覽事件
         imagePreview.addEventListener('mouseover', (event) => {
-          chrome.scripting.executeScript({
+          // chrome.scripting.executeScript({ // Chrome版
+          // browser.scripting.executeScript({ // Firefox版
+          let browserApi = typeof browser !== "undefined" ? browser : chrome;
+          browserApi.scripting.executeScript({ // 判斷通用版
             target: { tabId: tabs[0].id },
-            function: (url) => {
+            // function: (url) => { // Chrome版
+            // func: (url) => { // Firefox版
+            [executeFunctionName]: (url) => { // 判斷通用版
+            
               // 檢查並移除已存在的 preview-container
               const existingPreviewContainer = document.getElementById('preview-container');
               if (existingPreviewContainer) {
@@ -196,10 +262,13 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
               previewContainer.style.borderRadius = '15px'; // 因為使用漸層導致無法正確 可留著
               previewContainer.style.padding = '10px';
               previewContainer.style.zIndex = '1000';
-              previewContainer.style.transition = 'all 0.3s';
+              previewContainer.style.transition = 'all 0.1s';
 
               // 從擴充元件取得主題設定
-              chrome.runtime.sendMessage({ action: "getTheme" }, (response) => {
+              // chrome.runtime.sendMessage({ action: "getTheme" }, (response) => { // Chrome版
+              // browser.runtime.sendMessage({ action: "getTheme" }).then((response) => { // Firefox版
+              let browserApi = typeof browser !== "undefined" ? browser : chrome;
+              browserApi.runtime.sendMessage({ action: "getTheme" }).then((response) => { // 判斷通用版
                 const currentTheme = response.theme;
                   // 根據當前的主題設置頁面
                 if (currentTheme == 'dark') {
@@ -207,7 +276,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                 } else {
                   previewContainer.style.backgroundColor = 'white';
                 }
-              })
+              });
 
               // 關閉按鈕
               const closeButton = document.createElement('div');
@@ -322,50 +391,108 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         // imagePreview.addEventListener('click', () => {
         //   window.open(imageUrl, '_blank'); // 在新標籤頁中開啟圖片
         // })
-
         // // 點擊圖片下載
         // imagePreview.addEventListener('click', () => {
         //   // 提取不帶參數的 URL
         //   const urlWithoutParams = imageUrl.split('?')[0];
-      
         //   // 獲取正確的檔案名稱
         //   const filename = urlWithoutParams.substring(urlWithoutParams.lastIndexOf('/') + 1) || 'image.png';
-      
         //   chrome.downloads.download({
         //     url: imageUrl, // 使用原始 URL 進行下載，以確保參數正確
         //     filename: filename,
         //   });
         // });
 
+        // 圖片轉為 PNG Blob
+        async function convertImageToPNGBlob(imageUrl) {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; // 避免 CORS 問題
+            img.src = imageUrl;
 
-       // 點擊圖片事件
-        imagePreview.addEventListener('click', () => {
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              canvas.toBlob((blob) => {
+                resolve(blob);
+              }, 'image/png');
+            };
+
+            img.onerror = (e) => {
+              reject(new Error('圖片載入失敗，可能是跨域限制'));
+            };
+          });
+        }
+
+        // 點擊圖片事件
+        imagePreview.addEventListener('click', async () => {
           // 讀取 localStorage 設定
           const isQuickDownloadEnabled = localStorage.getItem('quickDownload') === 'true';
+          const IsPngSwitchEnabled = localStorage.getItem('pngSwitch') === 'true';
 
           if (isQuickDownloadEnabled) {
-            // 快速下載
             try {
               const urlObj = new URL(imageUrl);
               let pathname = urlObj.pathname;
               let filename = pathname.substring(pathname.lastIndexOf('/') + 1) || 'image.png';
-
-              // 檢查副檔名 沒有時補上 PNG
+            
+              // 檢查檔名是否包含副檔名，若無，則加上 .png
               if (!filename.includes('.')) {
                 filename += '.png';
               }
 
-              chrome.downloads.download({
-                url: imageUrl, // 使用原始 URL 進行下載，以確保參數正確
-                filename: filename,
-              });
+              // 檢查是否啟用 PNG 強制轉檔
+              if (IsPngSwitchEnabled) {
+                filename = filename.replace(/\.[^/.]+$/, '') + '.png'; // 統一副檔名為 .png
+
+                // 真正將圖片轉為 PNG Blob
+                const pngBlob = await convertImageToPNGBlob(imageUrl);
+                const objectUrl = URL.createObjectURL(pngBlob);
+
+                // chrome.downloads.download({ // Chrome版
+                // browser.downloads.download({ // Firefox版
+                let browserApi = typeof browser !== "undefined" ? browser : chrome;
+                browserApi.downloads.download({ // 判斷通用版
+                  url: objectUrl,
+                  filename: filename
+                // }, () => { // Chrome版
+                }).then(() => { // Firefox版
+                  // 用完後釋放記憶體
+                  URL.revokeObjectURL(objectUrl);
+                // }); // Chrome版
+                }).catch(error => console.error("下載錯誤:", error)); // Firefox版
+
+              } else {
+                // 不轉 PNG，直接下載原圖
+                if (!filename.includes('.')) {
+                // 檢查檔名是否包含副檔名，若無，則加上 .png
+                  filename += '.png';
+                }
+
+                // chrome.downloads.download({ // Chrome版
+                // browser.downloads.download({ // Firefox版
+                let browserApi = typeof browser !== "undefined" ? browser : chrome;
+                browserApi.downloads.download({ // 判斷通用版
+                  url: imageUrl, // 使用原始 URL 進行下載，以確保參數正確
+                  filename: filename,
+                // }); // Chrome版
+                }).catch(error => console.error("下載錯誤:", error)); // Firefox版
+              }
+
             } catch (error) {
-              console.error('URL 解析錯誤:', error);
+              console.error('處理圖片下載錯誤：', error);
               // 如果 URL 解析失敗，可以使用備用方法或顯示錯誤訊息
-              chrome.downloads.download({
+              // chrome.downloads.download({ // Chrome版
+              // browser.downloads.download({ // Firefox版
+              let browserApi = typeof browser !== "undefined" ? browser : chrome;
+              browserApi.downloads.download({ // 判斷通用版
                 url: imageUrl,
                 filename: 'image.png',
-              });
+              // }); // Chrome版
+              }).catch(error => console.error("下載錯誤:", error)); // Firefox版
             }
           } else {
             // 在新分頁中開啟圖片
@@ -373,12 +500,16 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
           }
         });
 
-
         // 離開預覽圖時移除 mouseout
         imagePreview.addEventListener('mouseout', () => {
-          chrome.scripting.executeScript({
+          // chrome.scripting.executeScript({ // Chrome版
+          // browser.scripting.executeScript({ // Firefox版
+          let browserApi = typeof browser !== "undefined" ? browser : chrome;
+          browserApi.scripting.executeScript({ // 判斷通用版
             target: { tabId: tabs[0].id },
-            function: () => {
+            // function: () => { // Chrome版
+            // func: () => { // Firefox版
+            [executeFunctionName]: () => { // 判斷通用版
               const previewContainer = document.getElementById('preview-container');
               if (previewContainer) {
                 previewContainer.remove();
@@ -387,12 +518,14 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
           });
         });
       });
-    }
-  );
+    // }); // Chrome版
+  }).catch(error => console.error("執行腳本錯誤:", error)); // Firefox版
 });
 
 // 監聽來自頁面的訊息 用於主題取取得localStorage
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+// chrome.runtime.onMessage.addListener((request, sender, sendResponse) => { // Chrome版
+// browser.runtime.onMessage.addListener((request, sender, sendResponse) => { // Firefox版
+browserApi.runtime.onMessage.addListener((request, sender, sendResponse) => { // 判斷通用版
   if (request.action === "getTheme") {
     // 從擴充元件的 localStorage 中取得主題設定
     const theme = localStorage.getItem("theme");
