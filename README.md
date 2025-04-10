@@ -7,6 +7,20 @@
 
 ---
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/bfkmokppkophngpacodnjkpngpabkdco">
+    <img src="https://github.com/Chek-Old/image/blob/main/Browser/Chrome.png?raw=true" alt="前往 Chrome 獲取擴充元件" width="30%" style="margin: 0 10px;">
+  </a>
+  <a href="https://addons.mozilla.org/zh-TW/firefox/addon/img-download-extensions/">
+    <img src="https://github.com/Chek-Old/image/blob/main/Browser/Firefox.png?raw=true" alt="前往 Firefox 獲取擴充元件" width="30%" style="margin: 0 10px;">
+  </a>
+  <a href="https://chromewebstore.google.com/detail/bfkmokppkophngpacodnjkpngpabkdco">
+    <img src="https://github.com/Chek-Old/image/blob/main/Browser/Edge.png?raw=true" alt="前往 Chrome 商店獲取擴充元件" width="30%" style="margin: 0 10px;">
+  </a>
+</p>
+
+---
+
 
 ## 🔧 功能特色
 
