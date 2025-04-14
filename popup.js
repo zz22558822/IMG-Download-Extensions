@@ -306,20 +306,27 @@ browserApi.tabs.query({ active: true, currentWindow: true }).then(function (tabs
                 closeButton.style.color = 'red';
               });
 
-              // 快速下載的 UI
-              const quickDownloadContainer = document.createElement('div');
-              quickDownloadContainer.style.position = 'fixed';
-              quickDownloadContainer.style.top = '10px';
-              quickDownloadContainer.style.left = '10px';
-              quickDownloadContainer.style.background = 'rgba(255, 255, 255, 0.8)';
-              quickDownloadContainer.style.padding = '5px 10px';
-              quickDownloadContainer.style.borderRadius = '5px';
-              quickDownloadContainer.style.boxShadow = '0px 0px 5px rgba(0, 0, 0, 0.2)';
-              quickDownloadContainer.style.zIndex = '10000';
-              quickDownloadContainer.style.display = 'flex';
-              quickDownloadContainer.style.alignItems = 'center';
-              quickDownloadContainer.style.fontSize = '14px';
-              quickDownloadContainer.style.cursor = 'pointer';
+              // 大小顯示
+              const sizeDiv = document.createElement('div');
+              sizeDiv.classList.add('size-info');
+              sizeDiv.style.position = 'absolute';
+              sizeDiv.style.left = '50%';
+              sizeDiv.style.transform = 'translateX(-50%)';
+              sizeDiv.style.bottom = '-80px';
+              sizeDiv.style.display = 'flex'
+              sizeDiv.style.justifyContent = 'center';
+              sizeDiv.style.alignItems = 'center';
+              sizeDiv.style.flexWrap = 'wrap';
+              sizeDiv.style.width = '180px';
+              sizeDiv.style.textAlign = 'center';
+              sizeDiv.style.fontSize = '20px';
+              sizeDiv.style.fontFamily = 'Noto Sans CJK TC, sans-serif';
+              sizeDiv.style.lineHeight = 'normal';
+              sizeDiv.style.borderRadius = '5px';
+              sizeDiv.style.padding = '5px 15px';
+              sizeDiv.style.color = '#FFF';
+              sizeDiv.style.background = '#00000098';
+              sizeDiv.style.zIndex = '1002';
 
               // 當點擊關閉按鈕時，移除預覽圖
               closeButton.addEventListener('click', () => {
@@ -380,6 +387,9 @@ browserApi.tabs.query({ active: true, currentWindow: true }).then(function (tabs
         
                 previewContainer.appendChild(previewImage);
                 previewContainer.appendChild(closeButton);
+                previewContainer.appendChild(sizeDiv);
+                // 因為載入順序問題 故須在 previewImage.onload 加載後才能顯示 寬高
+                sizeDiv.innerHTML = `<span style="display: inline-block;">寬度: ${previewImage.naturalWidth}px</span><span style="display: inline-block;">高度: ${previewImage.naturalHeight}px</span>`;
                 document.body.appendChild(previewContainer);
               };
             },
