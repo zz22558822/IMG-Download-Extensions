@@ -1,3 +1,11 @@
+/* Version 1.0.4
+1. 使用 MutationObserver 強化動態載入圖片的嗅探
+2. 強化嗅探 動態生成的 Src 和 Srcset
+3. 強化嗅探 Web Worker 或 Blob 載入的圖片
+4. Canvas 元素擴充 JPGE格式
+5. 增加驗證網址 優化重複顯示問題
+*/
+
 // 判斷當前環境
 function getBrowserType() {
   const userAgent = navigator.userAgent;
@@ -122,92 +130,156 @@ browserApi.tabs.query({ active: true, currentWindow: true }).then(function (tabs
       // function: () => { // Chrome版
       // func: () => { // Firefox版
       [executeFunctionName] : () => { // 判斷通用版
-        const imageUrls = [];
-        const validUrlRegex = /^(https?:\/\/|data:|\/)/i; // 驗證網址格式
+        const imageUrls = new Set(); // 使用 Set 來避免重複的 URL
+        // 驗證網址格式，新增 Blob 和 Object URL 的支援
+        const validUrlRegex = /^(https?:\/\/|data:|blob:|object:|\/)/i;
 
-        // 抓取 <img> 標籤的圖片
-        const images = Array.from(document.querySelectorAll('img'));
-        images.forEach((img) => {
-          if (img.src && validUrlRegex.test(img.src)) {
-            imageUrls.push(img.src);
-          }
-        });
+        // 檢查並處理圖片 URL 的函式
+        function processImageUrls() {
+          // 抓取 <img> 標籤的圖片
+          const images = Array.from(document.querySelectorAll('img'));
+          images.forEach((img) => {
+            // 處理 src 和 srcset 屬性
+            if (img.src && validUrlRegex.test(img.src)) {
+              imageUrls.add(img.src);
+            }
+            if (img.srcset) {
+              const srcsetUrls = img.srcset.split(',').map(part => part.trim().split(' ')[0]);
+              srcsetUrls.forEach(url => {
+                if (validUrlRegex.test(url)) {
+                  imageUrls.add(url);
+                }
+              });
+            }
+            // 檢查 data-* 屬性，常見於延遲載入 (lazy loading)
+            for (const key in img.dataset) {
+              const dataUrl = img.dataset[key];
+              if (dataUrl && validUrlRegex.test(dataUrl)) {
+                imageUrls.add(dataUrl);
+              }
+            }
+          });
 
-        // 抓取背景圖片
-        const elements = Array.from(document.querySelectorAll('*'));
-        elements.forEach((element) => {
-          const style = window.getComputedStyle(element);
-          const backgroundImage = style.backgroundImage;
-          if (backgroundImage && backgroundImage.startsWith('url')) {
-            const url = backgroundImage.replace(/^url\(['"](.+)['"]\)$/, '$1');
-            if (validUrlRegex.test(url)) {
-              imageUrls.push(url);
+          // 抓取背景圖片
+          const elements = Array.from(document.querySelectorAll('*'));
+          elements.forEach((element) => {
+            const style = window.getComputedStyle(element);
+            const backgroundImage = style.backgroundImage;
+            if (backgroundImage && backgroundImage.startsWith('url')) {
+              const url = backgroundImage.replace(/^url\(['"](.+)['"]\)$/, '$1');
+              if (validUrlRegex.test(url)) {
+                imageUrls.add(url);
+              }
+            }
+          });
+
+          // 抓取 CSS content 屬性的圖片
+          elements.forEach((element) => {
+            const styleBefore = window.getComputedStyle(element, '::before');
+            const contentBefore = styleBefore.content;
+            if (contentBefore && contentBefore.startsWith('url')) {
+              const url = contentBefore.replace(/^url\(['"](.+)['"]\)$/, '$1');
+              if (validUrlRegex.test(url)) {
+                imageUrls.add(url);
+              }
+            }
+            const styleAfter = window.getComputedStyle(element, '::after');
+            const contentAfter = styleAfter.content;
+            if (contentAfter && contentAfter.startsWith('url')) {
+              const url = contentAfter.replace(/^url\(['"](.+)['"]\)$/, '$1');
+              if (validUrlRegex.test(url)) {
+                imageUrls.add(url);
+              }
+            }
+          });
+
+          // 抓取 <canvas> 元素的圖片，支援多種格式
+          const canvases = document.querySelectorAll('canvas');
+          canvases.forEach((canvas) => {
+            try {
+              // 嘗試取得 PNG 格式的圖片 URL
+              const pngUrl = canvas.toDataURL('image/png');
+              if (validUrlRegex.test(pngUrl)) {
+                imageUrls.add(pngUrl);
+              }
+              // 嘗試取得 JPEG 格式的圖片 URL
+              const jpegUrl = canvas.toDataURL('image/jpeg', 1.0);
+              if (validUrlRegex.test(jpegUrl)) {
+                imageUrls.add(jpegUrl);
+              }
+            } catch (error) {
+              console.error('無法從 canvas 取得圖片:', error);
+            }
+          });
+
+          // 抓取 <svg> 元素的圖片
+          const svgs = document.querySelectorAll('svg image');
+          svgs.forEach((image) => {
+            const imageUrl = image.getAttribute('xlink:href') || image.getAttribute('href');
+            if (imageUrl && validUrlRegex.test(imageUrl)) {
+              imageUrls.add(imageUrl);
+            }
+          });
+
+          // 抓取 data:、Blob:、Object: URL
+          const allElements = document.querySelectorAll('*');
+          allElements.forEach((element) => {
+            // 檢查 style 屬性的背景圖片
+            const style = window.getComputedStyle(element);
+            if (style.backgroundImage && style.backgroundImage.startsWith('url("data:')) {
+              const dataUrl = style.backgroundImage.replace(/^url\(['"](.+)['"]\)$/, '$1');
+              if (validUrlRegex.test(dataUrl)) {
+                imageUrls.add(dataUrl);
+              }
+            }
+
+            // 檢查所有屬性中是否有 Blob 或 Object URL
+            for (const attr of element.attributes) {
+              if (attr.value.startsWith('blob:') || attr.value.startsWith('object:')) {
+                if (validUrlRegex.test(attr.value)) {
+                  imageUrls.add(attr.value);
+                }
+              }
+            }
+          });
+        }
+        
+        // 初始執行一次圖片嗅探
+        processImageUrls();
+
+        // 使用 MutationObserver 監聽 DOM 變化，捕捉動態載入的圖片
+        const observer = new MutationObserver((mutationsList, observer) => {
+          for (const mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+              mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) { // 元素節點
+                  const imgTags = node.querySelectorAll('img');
+                  if (imgTags.length > 0) {
+                    processImageUrls(); // 重新處理圖片
+                  } else if (node.tagName === 'IMG') {
+                    processImageUrls(); // 重新處理圖片
+                  }
+                }
+              });
+            }
+            if (mutation.type === 'attributes') {
+              if (mutation.attributeName === 'src' || mutation.attributeName === 'srcset' || mutation.attributeName.startsWith('data-')) {
+                processImageUrls(); // 重新處理圖片
+              }
             }
           }
         });
+        
+        // 開始觀察整個 body，配置為觀察子節點變化和屬性變化
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
-        // 抓取 CSS content 屬性的圖片
-        elements.forEach((element) => {
-          const style = window.getComputedStyle(element, '::before');
-          const content = style.content;
-          if (content && content.startsWith('url')) {
-            const url = content.replace(/^url\(['"](.+)['"]\)$/, '$1');
-            if (validUrlRegex.test(url)) {
-              imageUrls.push(url);
-            }
-          }
-          const styleAfter = window.getComputedStyle(element, '::after');
-          const contentAfter = styleAfter.content;
-          if(contentAfter && contentAfter.startsWith('url')){
-            const url = contentAfter.replace(/^url\(['"](.+)['"]\)$/, '$1');
-            if (validUrlRegex.test(url)) {
-              imageUrls.push(url);
-            }
-          }
-        });
-
-        // 抓取 <canvas> 元素的圖片
-        const canvases = document.querySelectorAll('canvas');
-        canvases.forEach((canvas) => {
-          try {
-            const imageUrl = canvas.toDataURL('image/png');
-            if (validUrlRegex.test(imageUrl)) {
-              imageUrls.push(imageUrl);
-            }
-          } catch (error) {
-            console.error('無法從 canvas 取得圖片:', error);
-          }
-        });
-
-        // 抓取 <svg> 元素的圖片 (簡易版)
-        const svgs = document.querySelectorAll('svg image');
-        svgs.forEach((image) => {
-          const imageUrl = image.getAttribute('xlink:href') || image.getAttribute('href');
-          if (imageUrl && validUrlRegex.test(imageUrl)) {
-            imageUrls.push(imageUrl);
-          }
-        });
-
-        // 抓取 data: URL
-        elements.forEach((element) => {
-          const style = window.getComputedStyle(element);
-          const backgroundImage = style.backgroundImage;
-          if (backgroundImage && backgroundImage.startsWith('data:') && validUrlRegex.test(backgroundImage)) {
-            imageUrls.push(backgroundImage);
-          }
-        });
-        images.forEach((image) => {
-          if (image.src && image.src.startsWith('data:') && validUrlRegex.test(image.src)) {
-            imageUrls.push(image.src);
-          }
-        });
-
-        return imageUrls;
+        // 返回不重複的圖片 URL
+        return Array.from(imageUrls);
       },
     
     // }, (results) => { // Chrome版
     }).then((results) => { // Firefox版
-      if (!results || !results[0] || !results[0].result) {
+      if (!results || !results[0] || !results[0].result || results[0].result.length === 0) {
         const errorMessage = document.getElementById('error-message');
         errorMessage.textContent = '無法抓取圖片，請檢查網頁是否有圖片。';
         return;
