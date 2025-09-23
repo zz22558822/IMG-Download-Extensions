@@ -47,6 +47,13 @@
 
 ## 📝 更新紀錄
 
+### 📌2025/4/14 — [v1.0.4](https://github.com/zz22558822/IMG-Download-Extensions/releases/tag/v1.0.4)
+- ✅ 使用 MutationObserver 強化動態載入圖片的嗅探
+- ✅ 強化嗅探 動態生成的 Src 和 Srcset
+- ✅ 強化嗅探 Web Worker 或 Blob 載入的圖片
+- ✅ Canvas 元素擴充 JPGE格式
+- 🔧 增加驗證網址 優化重複顯示問題
+
 ### 📌2025/4/14 — [v1.0.3](https://github.com/zz22558822/IMG-Download-Extensions/releases/tag/v1.0.3)
 - ✅ 預覽圖新增圖片資訊框
 
