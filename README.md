@@ -47,6 +47,12 @@
 
 ## 📝 更新紀錄
 
+### 📌2026/6/3 — [v1.1.0](https://github.com/zz22558822/IMG-Download-Extensions/releases/tag/v1.1.0)
+- ✅ 優化下載策略：多層降級機制（XHR → fetch no-cors → iframe → 新分頁）
+- ✅ 優化縮圖顯示：注入頁面取得 Blob 並回傳 dataURL，解決跨域/防盜縮圖問題
+- ✅ 優化嗅探機制
+- 🔧 修改部分已知錯誤
+
 ### 📌2025/9/23 — [v1.0.4](https://github.com/zz22558822/IMG-Download-Extensions/releases/tag/v1.0.4)
 - ✅ 使用 MutationObserver 強化動態載入圖片的嗅探
 - ✅ 強化嗅探 動態生成的 Src 和 Srcset
